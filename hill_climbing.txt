@@ -2,14 +2,6 @@
 
 import random
 
-def is_valid(board):
-    n = len(board)
-    for i in range(n):
-        for j in range(i + 1, n):
-            if board[i] == board[j] or abs(board[i] - board[j]) == abs(i - j):
-                return False
-    return True
-
 def calculate_heuristic(board):
     n = len(board)
     conflicts = 0
@@ -19,27 +11,39 @@ def calculate_heuristic(board):
                 conflicts += 1
     return conflicts
 
-def hill_climbing(n):
-    current_board = [random.randint(0, n-1) for _ in range(n)]
-    current_heuristic = calculate_heuristic(current_board)
+def hill_climbing(n, max_restarts=1000):
+    for _ in range(max_restarts):
+        current_board = [random.randint(0, n-1) for _ in range(n)]
+        current_heuristic = calculate_heuristic(current_board)
 
-    while current_heuristic > 0:
-        next_board = list(current_board)
-        for i in range(n):
-            for j in range(n):
-                if current_board[i] != j:
-                    next_board[i] = j
-                    next_heuristic = calculate_heuristic(next_board)
-                    if next_heuristic < current_heuristic:
-                        current_board = list(next_board)
-                        current_heuristic = next_heuristic
+        while True:
+            neighbor = None
+            min_heuristic = current_heuristic
 
-        if current_heuristic == calculate_heuristic(current_board):
-            break
+            for col in range(n):
+                for row in range(n):
+                    if current_board[col] != row:
+                        new_board = list(current_board)
+                        new_board[col] = row
+                        new_heuristic = calculate_heuristic(new_board)
+                        if new_heuristic < min_heuristic:
+                            neighbor = new_board
+                            min_heuristic = new_heuristic
 
-    return current_board
+            if neighbor is None:
+                break 
+            current_board = neighbor
+            current_heuristic = min_heuristic
+
+            if current_heuristic == 0:
+                return current_board
+
+    return None  
 
 # Example usage
-n = 8
+n = 10
 solution = hill_climbing(n)
-print("N-Queens Solution:", solution)
+if solution:
+    print("N-Queens Solution:", solution)
+else:
+    print("No solution found.")
